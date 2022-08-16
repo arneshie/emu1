@@ -2,18 +2,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <GL/glut.h>
 
 chip8* emu;
 
+#define SCREEN_WIDTH 64
+#define SCREEN_HEIGHT 32
 
-int initializeGraphics(){
-    // TODO
-    return 1;
+int display_width = SCREEN_WIDTH * 10;
+int display_height = 10 * SCREEN_HEIGHT;
+
+void display();
+u8 screenData[SCREEN_HEIGHT][SCREEN_WIDTH][3];
+void setupTexture();
+
+void keyboardUp(unsigned char a, int x, int y){
+    return;
+}
+
+void keyboardDown(unsigned char a, int x, int y){
+    return;
+}
+
+int initializeGraphics(int argc, char** argv){
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+    glutInitWindowSize(display_width, display_height);
+    glutInitWindowPosition(320, 320);
+    glutCreateWindow("ch8emu");
+    return 0;
 }
 
 int initializeInput(){
-    // TODO
-    return 1;
+    glutKeyboardFunc(keyboardDown);
+    glutKeyboardUpFunc(keyboardUp);
+    return 0;
 }
 
 int drawGraphics(){
@@ -25,6 +48,26 @@ void setKeys(chip8 * param){
     return;
 }
 
+
+void updateQuadrants(){
+    for (int y = 0; y < SCREEN_HEIGHT; ++y){
+        for (int x = 0; x < SCREEN_WIDTH; ++x){
+            if (emu->gfx[(y*SCREEN_WIDTH) + x] == 0) glColor3f(0.0f, 0.0f, 0.0f);
+            else glColor3f(1.0f, 1.0f, 1.0f);
+        }
+    }
+}
+
+void display(){
+    emulateCycle(emu);
+    if (emu->drawflag){
+        glClear(GL_COLOR_BUFFER_BIT);
+        updateQuadrants();
+    }
+
+    glutSwapBuffers();
+    emu->drawflag = 0;
+}
 
 int loadApplication(const char * filename, chip8* emu){
     FILE * f = fopen(filename, "rb");
@@ -50,17 +93,21 @@ int loadApplication(const char * filename, chip8* emu){
 }
 
 
-int main(int arc, char ** argv){
+int main(int argc, char ** argv){
     emu = (chip8 *) malloc(sizeof(chip8));
-    initializeGraphics();
+    initializeGraphics(argc, argv);
     initializeInput();
     init(emu);
-    printf("%d\n", loadApplication("../roms/ibm.ch8", emu));
-    for(;;){
-        emulateCycle(emu);
-        if (emu->drawflag) drawGraphics();
-        setKeys(emu);
-    }
+    glutDisplayFunc(display);
+    glutIdleFunc(display);
+    printf("%d", loadApplication("../roms/ibm.ch8", emu));
+
+    glutMainLoop();
+    // for(;;){
+    //     emulateCycle(emu);
+    //     if (emu->drawflag) drawGraphics();
+    //     setKeys(emu);
+    // }
     return 0;
 }
 
