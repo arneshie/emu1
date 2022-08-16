@@ -22,7 +22,7 @@ const unsigned char fontset[FONTSET_SIZE] = {
 
 void emulateCycle(chip8* emu){
     u16 opcode = emu->memory[emu->pc] << 8 | emu->memory[(emu->pc)+1];
-
+    // debug out printf("%04x\n", opcode);
     switch (opcode & 0xF000){
         
         case 0x0000:
@@ -70,6 +70,10 @@ void emulateCycle(chip8* emu){
             emu->registers[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
             emu->pc += 2;
             break;
+        case 0x7000:
+            emu->registers[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
+            emu->pc += 2;
+            break;
         case 0xA000:
             emu->index_register = opcode & 0x0FFF;
             emu->pc += 2;
@@ -81,7 +85,8 @@ void emulateCycle(chip8* emu){
                 u16 height = opcode & 0x000F;
                 u16 p;
                 emu->registers[15] = 0;
-                for (int yl = 0; yl < height; ++yl){ // yl increases up to height {
+                for (int yl = 0; yl < height; ++yl) // yl increases up to height {
+                    {
                     p = emu->memory[emu->index_register + yl];
                     for (int xl = 0; xl < 8; ++xl){ // xl is fixed at 8
                         if ((p & (0x80 >> xl)) != 0){
@@ -92,12 +97,16 @@ void emulateCycle(chip8* emu){
                         }
                     }
                 }
+                emu->drawflag = 1;
+                emu->pc += 2;
             }
             break;
+
         default:
             printf("Error, opcode: %04x not implemented yet.\n", opcode);
-        
     }
+    if (emu->delay_timer > 0) --emu->delay_timer;
+    if (emu->sound_timer > 0) --emu->sound_timer;
 
 }
 
