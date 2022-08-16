@@ -74,6 +74,26 @@ void emulateCycle(chip8* emu){
             emu->index_register = opcode & 0x0FFF;
             emu->pc += 2;
             break;
+        case 0xD000:
+            {
+                u16 x = emu->registers[(opcode & 0x0F00) >> 8];
+                u16 y = emu->registers[(opcode & 0x00F0) >> 4];
+                u16 height = opcode & 0x000F;
+                u16 p;
+                emu->registers[15] = 0;
+                for (int yl = 0; yl < height; ++yl){ // yl increases up to height {
+                    p = emu->memory[emu->index_register + yl];
+                    for (int xl = 0; xl < 8; ++xl){ // xl is fixed at 8
+                        if ((p & (0x80 >> xl)) != 0){
+                            if (emu->gfx[(x+xl+((y+yl)*64))] == 1){
+                                emu->registers[15] = 1; // set the F register to indicate that screen pixels were flipped from set to unset
+                            }
+                            emu->gfx[x + xl + ((y+yl)*64)] ^= 1;
+                        }
+                    }
+                }
+            }
+            break;
         default:
             printf("Error, opcode: %04x not implemented yet.\n", opcode);
         
