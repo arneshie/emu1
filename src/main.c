@@ -1,8 +1,8 @@
-#include "chip8.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <GL/glut.h>
+#include "chip8.h"
 
 chip8* emu;
 
@@ -13,8 +13,6 @@ int display_width = SCREEN_WIDTH * 10;
 int display_height = 10 * SCREEN_HEIGHT;
 
 void display();
-u8 screenData[SCREEN_HEIGHT][SCREEN_WIDTH][3];
-void setupTexture();
 
 void keyboardUp(unsigned char a, int x, int y){
     return;
@@ -39,34 +37,64 @@ int initializeInput(){
     return 0;
 }
 
-int drawGraphics(){
-    // TODO
-    return 1;
-}
 
 void setKeys(chip8 * param){
     return;
 }
 
+void drawPixel(int x, int y){
+	glBegin(GL_QUADS);
+		glVertex3f((x * 10) + 0.0f,     (y * 10) + 0.0f,	 0.0f);
+		glVertex3f((x * 10) + 0.0f,     (y * 10) + 10, 0.0f);
+		glVertex3f((x * 10) + 10, (y * 10) + 10, 0.0f);
+		glVertex3f((x * 10) + 10, (y * 10) + 0.0f,	 0.0f);
+	glEnd();
+}
 
-void updateQuadrants(){
-    for (int y = 0; y < SCREEN_HEIGHT; ++y){
-        for (int x = 0; x < SCREEN_WIDTH; ++x){
-            if (emu->gfx[(y*SCREEN_WIDTH) + x] == 0) glColor3f(0.0f, 0.0f, 0.0f);
-            else glColor3f(1.0f, 1.0f, 1.0f);
-        }
-    }
+
+void updateQuadrants(chip8 * emu){
+	for(int y = 0; y < 32; ++y)		
+		for(int x = 0; x < 64; ++x)
+		{
+			if(emu->gfx[(y*64) + x] == 0) 
+				glColor3f(0.0f,0.0f,0.0f);			
+			else 
+				glColor3f(1.0f,1.0f,1.0f);
+
+			drawPixel(x, y);
+		}
 }
 
 void display(){
-    emulateCycle(emu);
-    if (emu->drawflag){
-        glClear(GL_COLOR_BUFFER_BIT);
-        updateQuadrants();
-    }
+	emulateCycle(emu);
+		
+	if(emu->drawflag)
+	{
+		// Clear framebuffer
+		glClear(GL_COLOR_BUFFER_BIT);
+        
+		updateQuadrants(emu);		
 
-    glutSwapBuffers();
-    emu->drawflag = 0;
+		// Swap buffers!
+		glutSwapBuffers();    
+
+		// Processed frame
+		emu->drawflag = 0;
+	}
+}
+
+void reshape_window(GLsizei w, GLsizei h)
+{
+	glClearColor(0.0f, 0.0f, 0.5f, 0.0f);
+	glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, w, h, 0);        
+    glMatrixMode(GL_MODELVIEW);
+    glViewport(0, 0, w, h);
+
+	// Resize quad
+	display_width = w;
+	display_height = h;
 }
 
 int loadApplication(const char * filename, chip8* emu){
@@ -100,14 +128,10 @@ int main(int argc, char ** argv){
     init(emu);
     glutDisplayFunc(display);
     glutIdleFunc(display);
+    glutReshapeFunc(reshape_window);
     printf("%d", loadApplication("../roms/ibm.ch8", emu));
 
     glutMainLoop();
-    // for(;;){
-    //     emulateCycle(emu);
-    //     if (emu->drawflag) drawGraphics();
-    //     setKeys(emu);
-    // }
     return 0;
 }
 
