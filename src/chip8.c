@@ -1,5 +1,6 @@
 #include "chip8.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 const unsigned char fontset[FONTSET_SIZE] = {
 	0xF0, 0x90, 0x90, 0x90, 0xF0,		// 0
@@ -74,9 +75,21 @@ void emulateCycle(chip8* emu){
             emu->registers[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
             emu->pc += 2;
             break;
+        case 0x9000:
+            if (emu->registers[(opcode & 0x0F00) >> 8] != emu->registers[(opcode & 0x00F0)>>4])
+                emu->pc += 4;
+            else
+                emu->pc +=2;
+            break;
         case 0xA000:
             emu->index_register = opcode & 0x0FFF;
             emu->pc += 2;
+            break;
+        case 0xB000:
+            emu->pc = opcode & 0x0FFF + emu->registers[0];
+            break;
+        case 0xC000:
+            emu->registers[(opcode & 0x0F00) >> 8] = (rand()%256) & (0x00FF & opcode);
             break;
         case 0xD000:
             {
@@ -135,5 +148,6 @@ void init(chip8* emu){
 
     emu->sound_timer = 0;
     emu->delay_timer = 0;
+    srand(time(NULL));
 
 }
