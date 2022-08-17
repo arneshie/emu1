@@ -1,6 +1,7 @@
 #include "chip8.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 const unsigned char fontset[FONTSET_SIZE] = {
 	0xF0, 0x90, 0x90, 0x90, 0xF0,		// 0

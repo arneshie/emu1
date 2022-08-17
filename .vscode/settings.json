@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "stdlib.h": "c",
+        "chip8.h": "c",
+        "stdint.h": "c"
+    }
+}
