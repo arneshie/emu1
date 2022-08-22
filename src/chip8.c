@@ -26,7 +26,7 @@ void emulateCycle(chip8* emu){
     u16 opcode = emu->memory[emu->pc] << 8 | emu->memory[(emu->pc)+1];
     // debug out printf("%04x\n", opcode);
     switch (opcode & 0xF000){
-        
+
         case 0x0000:
             switch(opcode & 0x000F){
                 case 0x000E:
@@ -75,6 +75,14 @@ void emulateCycle(chip8* emu){
         case 0x7000:
             emu->registers[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
             emu->pc += 2;
+            break;
+        case 0x8000:
+            switch (opcode & 0x000F){
+                case 0x0000:
+                    emu->registers[(opcode & 0x0F00) >> 8] = emu->registers[(opcode & 0x00F0 >> 4)];     
+                    emu->pc += 2;
+                    break;           
+            }
             break;
         case 0x9000:
             if (emu->registers[(opcode & 0x0F00) >> 8] != emu->registers[(opcode & 0x00F0)>>4])
