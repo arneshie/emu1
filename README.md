@@ -11,6 +11,7 @@ Written entirely in C, using openGL2 for the user interface.
 * Cleanup the openGL code / UI code 
 * Convert to CMAKE project and reorganize code
 * Commenting to explain each OP code / documentation
+* Handling variable framerate / clockspeed to play at 15 fps.
 
 Feel free to fork and contribute to any of the todo tasks!
 
